@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <NoWarn>CA1416;SKEXP0001;SKEXP0110;SKEXP0010;SKEXP0020;SKEXP0050;SKEXP0060; CS8602, CS8600</NoWarn>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
@@ -30,9 +31,15 @@
     <PackageReference Include="AvaloniaEdit.TextMate" Version="11.2.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="FluentAvaloniaUI" Version="2.3.0" />
+    <PackageReference Include="LiteDB" Version="5.0.21" />
     <PackageReference Include="Markdown.Avalonia" Version="11.0.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.4" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.47.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.47.0" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.1" />
+    <PackageReference Include="Serilog.Sinks.InMemory" Version="0.15.0" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
     <PackageReference Include="TextMateSharp.Grammars" Version="1.0.66" />
   </ItemGroup>
@@ -47,5 +54,30 @@
     <AvaloniaResource Update="Assets\FluentIconsResources.axaml">
       <SubType>Designer</SubType>
     </AvaloniaResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Prompts\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Prompts\ChartMaker.prompty">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Prompts\CommonAgentRules.prompty">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Prompts\Coordinator.prompty">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Prompts\NL2SQL.prompty">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Prompts\SelectionStrategy.prompty">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Prompts\TerminationStrategy.prompty">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

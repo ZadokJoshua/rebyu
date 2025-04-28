@@ -10,6 +10,8 @@
     xmlns:md="https://github.com/whistyun/Markdown.Avalonia"
     xmlns:models="using:Rebyu.Models"
     xmlns:vm="using:Rebyu.ViewModels"
+    MinWidth="600"
+    MinHeight="400"
     d:DesignHeight="450"
     d:DesignWidth="800"
     x:DataType="vm:MainViewModel"
@@ -26,6 +28,7 @@
         <Style Selector="PathIcon">
             <Setter Property="FontSize" Value="15" />
         </Style>
+
         <Style Selector="GridSplitter">
             <Setter Property="Margin" Value="2" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -34,10 +37,15 @@
             <Setter Property="ResizeBehavior" Value="PreviousAndNext" />
             <Setter Property="ShowsPreview" Value="True" />
         </Style>
+
         <Style Selector="Border">
             <Setter Property="BorderBrush" Value="#3d444d" />
             <Setter Property="CornerRadius" Value="5" />
             <Setter Property="Background" Value="#2C2C2C" />
+        </Style>
+
+        <Style Selector="ListBox.filters ListBoxItem:selected Border">
+            <Setter Property="BorderBrush" Value="Transparent" />
         </Style>
     </UserControl.Styles>
 
@@ -52,7 +60,7 @@
             <!--  Top Section with Header and Menus  -->
             <Grid
                 Grid.Row="0"
-                Margin="2"
+                Margin="4"
                 ColumnDefinitions="*,Auto,*">
                 <StackPanel
                     Grid.Column="0"
@@ -105,7 +113,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" MinWidth="150" />
                             <ColumnDefinition Width="2" />
-                            <ColumnDefinition Width="3*" MinWidth="150" />
+                            <ColumnDefinition Width="2*" MinWidth="150" />
                         </Grid.ColumnDefinitions>
 
                         <!--  TREE VIEW  -->
@@ -193,6 +201,8 @@
                                 Grid.Row="0"
                                 Margin="0,0,0,4"
                                 VerticalAlignment="Top"
+                                BorderBrush="#3d444d"
+                                BorderThickness="1"
                                 IsExpanded="True">
                                 <Expander.Header>
                                     Table Info
@@ -218,13 +228,18 @@
                                     <CheckBox Grid.Row="1" Grid.Column="1" />
                                 </Grid>
                             </Expander>
+
                             <!--  AVALONIA EDIT  -->
-                            <Border Grid.Row="1" BorderThickness="1">
+                            <Border
+                                x:Name="EditorBorder"
+                                Grid.Row="1"
+                                BorderBrush="#3d444d"
+                                BorderThickness="2">
                                 <Grid RowDefinitions="*,auto">
                                     <AvaloniaEdit:TextEditor
                                         x:Name="sqlEditor"
                                         Grid.Row="0"
-                                        Document="{Binding EditorContent, Mode=TwoWay}"
+                                        Document="{Binding CurrentSessionQuery.EditorContent, Mode=TwoWay}"
                                         FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
                                         FontSize="14"
                                         HorizontalScrollBarVisibility="Auto"
@@ -389,29 +404,29 @@
             <TextBlock
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                FontSize="24"
+                FontSize="28"
                 FontWeight="SemiBold"
                 Text="Welcome to Rebyu!" />
 
             <Label
-                Margin="0,10,0,0"
+                Margin="0,12,0,0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Content="Yet a simple SQLite Database viewer"
-                FontSize="16" />
+                FontSize="20" />
 
             <Button
-                Margin="0,10,0,0"
+                Margin="0,12,0,0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Command="{Binding SelectDbFileCommand}"
                 Content="Select Database" />
 
-            <Separator Margin="20" />
+            <Separator Margin="16" />
             <Button
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Background="{DynamicResource SystemAccentColor}"
+                Background="{DynamicResource SystemFillColorSuccessBrush}"
                 Content="Saved sessions" />
         </StackPanel>
     </Grid>

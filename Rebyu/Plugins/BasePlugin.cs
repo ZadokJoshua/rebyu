@@ -7,11 +7,11 @@ using System.Text;
 
 namespace Rebyu.Plugins;
 
-public sealed class SchemaPlugin
+public class BasePlugin
 {
 
     [KernelFunction]
-    [Description("Retrieves a JSON-formatted representation of the SQLite database schema, including each table's name, columns (name, data type, primary key and foreign key flags)")]
+    [Description("Retrieves the selected SQLite database schema")]
     public string GetDatabaseSchema()
     {
         var mainViewModel = App.ServiceProvider.GetRequiredService<MainViewModel>();
@@ -40,4 +40,8 @@ public sealed class SchemaPlugin
 
         return schemaContext.ToString();
     }
+
+    [KernelFunction]
+    [Description("Retrieves the current time in UTC.")]
+    public string GetCurrentUtcTime() => DateTime.UtcNow.ToString("R");
 }

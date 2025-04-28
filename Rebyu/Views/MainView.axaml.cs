@@ -1,16 +1,12 @@
 using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Media;
 using AvaloniaEdit.CodeCompletion;
-using AvaloniaEdit.Document;
 using AvaloniaEdit.TextMate;
 using Microsoft.Extensions.DependencyInjection;
-using Rebyu.Helper;
 using Rebyu.ViewModels;
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Threading.Tasks;
 using TextMateSharp.Grammars;
@@ -23,6 +19,10 @@ public partial class MainView : UserControl
     private TextMate.Installation _textMateInstallation;
     private readonly MainViewModel _viewModel;
 
+    private const double FontSizeStep = 1.0;
+    private const double MinFontSize = 8.0;
+    private const double MaxFontSize = 48.0;
+
     private readonly List<string> _sqliteExtensions = [ ".db", ".sqlite", ".sqlite3", ".db3", ".s3db", ".sl3" ];
 
     public MainView()
@@ -31,7 +31,7 @@ public partial class MainView : UserControl
         _viewModel = App.ServiceProvider.GetRequiredService<MainViewModel>();
         DataContext = _viewModel;
 
-        _registryOptions = new RegistryOptions(ThemeName.Dark);
+        _registryOptions = new RegistryOptions(ThemeName.Monokai);
         _textMateInstallation = sqlEditor.InstallTextMate(_registryOptions);
 
         Language sqlLanguage = _registryOptions.GetLanguageByExtension(".sql");
@@ -44,12 +44,63 @@ public partial class MainView : UserControl
         LineNumberText.Text = "1";
         ColumnNumberText.Text = "1";
 
-
         sqlEditor.TextArea.Caret.PositionChanged += Caret_PositionChanged;
-
+        sqlEditor.PointerWheelChanged += SqlEditor_OnPointerWheelChanged;
+        AttachedToVisualTree += OnAttached;
     }
 
-    
+    private void SqlEditor_OnPointerWheelChanged(object? sender, Avalonia.Input.PointerWheelEventArgs e)
+    {
+        if ((e.KeyModifiers & Avalonia.Input.KeyModifiers.Control) != 0)
+        {
+            if (e.Delta.Y > 0)
+            {
+                IncreaseFontSize();
+            }
+            else if (e.Delta.Y < 0)
+            {
+                DecreaseFontSize();
+            }
+            e.Handled = true;
+        }
+    }
+
+    private void IncreaseFontSize()
+    {
+        if (sqlEditor.FontSize < MaxFontSize)
+        {
+            sqlEditor.FontSize += FontSizeStep;
+        }
+    }
+    private void DecreaseFontSize()
+    {
+        if (sqlEditor.FontSize > MinFontSize)
+        {
+            sqlEditor.FontSize -= FontSizeStep;
+        }
+    }
+
+    private void OnAttached(object? sender, Avalonia.VisualTreeAttachmentEventArgs e)
+    {
+        _viewModel.SqlQueries.CollectionChanged += OnSqlQueriesCollectionChanged;
+    }
+
+    private async void OnSqlQueriesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action == NotifyCollectionChangedAction.Add)
+        {
+            var originalEditorBorderBrush = EditorBorder.BorderBrush;
+            var originalEditorBorderWidth = EditorBorder.Width;
+
+            EditorBorder.BorderBrush = new SolidColorBrush(Color.Parse("#6ccb5f"));
+            EditorBorder.Width = 4;
+
+            await Task.Delay(1000);
+
+            EditorBorder.BorderBrush = originalEditorBorderBrush;
+            EditorBorder.Width = originalEditorBorderWidth;
+        }
+    }
 
     private bool IsSqliteFile(string file)
     {

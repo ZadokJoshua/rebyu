@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.SemanticKernel;
-using Rebyu.Plugins;
+using Microsoft.Extensions.Logging;
+using Rebyu.Interfaces;
 using Rebyu.Services;
 using Rebyu.ViewModels;
+using Serilog;
+using Serilog.Sinks.InMemory;
 using System;
 
 namespace Rebyu.Extensions;
@@ -14,21 +16,33 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<MainViewModel>();
         collection.AddSingleton<SqliteDataService>();
 
-        var openaiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY", EnvironmentVariableTarget.User);
+        var openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY", EnvironmentVariableTarget.User);
 
-        if (string.IsNullOrEmpty(openaiApiKey))
-        {
+        if (string.IsNullOrEmpty(openAiApiKey))
             throw new InvalidOperationException("OPENAI_API_KEY environment variable is not set.");
-        }
 
-        var kernelBuilder = collection.AddKernel();
-        kernelBuilder.Services.AddOpenAIChatCompletion(
-            "gpt-4.1", 
-            openaiApiKey);
+        var serilogLogger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.InMemory()
+            .CreateLogger();
 
+        var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddSerilog(serilogLogger);
+        });
 
-        kernelBuilder.Plugins.AddFromType<SchemaPlugin>();
-        kernelBuilder.Plugins.AddFromType<TimeInformation>();
+        collection.AddSingleton<ILoggerFactory>(loggerFactory);
 
+        collection.AddSingleton<ISemanticKernelService>(provider =>
+        {
+            var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+            return new SemanticKernelService(loggerFactory, openAiApiKey);
+        });
+
+        collection.AddSingleton<ILiteDbDataService, LiteDbDataService>(provider =>
+        {
+            var connStr = "Filename=rebyu.db;Mode=Shared"; // Hardcoded for now
+            return new LiteDbDataService(connStr);
+        });
     }
 }

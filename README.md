@@ -1,7 +1,7 @@
 # Rebyu
-![image](https://github.com/user-attachments/assets/5403c49d-1582-40b7-9ad6-1fc79323ede2)
+![image](https://github.com/user-attachments/assets/6d9c95c1-2182-4a5a-9747-df7bfd9e8849)
 
-Rebyu is an intelligent SQLite viewer application designed to enable seamless, natural interaction with your databases through a multi-agent system.
+**Rebyu** is an intelligent SQLite viewer application designed to enable seamless, natural interaction with your databases through a multi-agent system.
 At its core, Rebyu performs three key functions:
 - **Schema-Aware Chat Initiation**: Rebyu starts by analysing your current database schema.
 - **Autonomous Request Routing**: Rebyu interprets the user's intent and silently routes the request to the correct internal agent.

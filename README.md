@@ -1,4 +1,6 @@
 # Rebyu
+![image](https://github.com/user-attachments/assets/5403c49d-1582-40b7-9ad6-1fc79323ede2)
+
 Rebyu is an intelligent SQLite viewer application designed to enable seamless, natural interaction with your databases through a multi-agent system.
 At its core, Rebyu performs three key functions:
 - **Schema-Aware Chat Initiation**: Rebyu starts by analysing your current database schema.
@@ -17,3 +19,11 @@ Perfect For:
 1. .NET 9
 2. Semantic Kernel
 3. Avalonia UI
+
+## How to run
+1. Clone this repository
+2. Set your Openai API key as an environment variable
+  ```bash
+   setx OPENAI_API_KEY "<YOUR-API-KEY>"
+   ```
+4. Build and run the project.

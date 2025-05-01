@@ -475,6 +475,12 @@
                             Height="1"
                             Background="#3D444D" />
 
+                        <ProgressBar
+                            Grid.Row="2"
+                            Height="2"
+                            IsIndeterminate="{Binding ChatIsBusy}"
+                            IsVisible="{Binding ChatIsBusy}" />
+
                         <!--  User Input Section  -->
                         <Grid
                             Grid.Row="3"

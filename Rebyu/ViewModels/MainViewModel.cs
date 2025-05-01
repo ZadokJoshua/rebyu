@@ -218,20 +218,28 @@ public partial class MainViewModel : ViewModelBase
     {
         if (string.IsNullOrEmpty(UserPrompt)) return;
 
+        ChatIsBusy = true;
         var userMessage = new Message("User", "User", text: UserPrompt)
-        { 
-            IsUser = true,  
+        {
+            IsUser = true,
         };
 
         AddMessageToChat(userMessage);
 
         UserPrompt = string.Empty;
 
-        var response = await _skService.GetResponse(userMessage, [.. Chat]);
-
-        foreach (var message in response.Item1)
+        try
         {
-            AddMessageToChat(message);
+            var response = await _skService.GetResponse(userMessage, [.. Chat]);
+
+            foreach (var message in response.Item1)
+            {
+                AddMessageToChat(message);
+            }
+        }
+        finally
+        {
+            ChatIsBusy = false;
         }
     }
 

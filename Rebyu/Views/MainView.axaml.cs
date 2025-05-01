@@ -90,15 +90,12 @@ public partial class MainView : UserControl
         if (e.Action == NotifyCollectionChangedAction.Add)
         {
             var originalEditorBorderBrush = EditorBorder.BorderBrush;
-            var originalEditorBorderWidth = EditorBorder.Width;
 
             EditorBorder.BorderBrush = new SolidColorBrush(Color.Parse("#6ccb5f"));
-            EditorBorder.Width = 4;
 
             await Task.Delay(1000);
 
             EditorBorder.BorderBrush = originalEditorBorderBrush;
-            EditorBorder.Width = originalEditorBorderWidth;
         }
     }
 

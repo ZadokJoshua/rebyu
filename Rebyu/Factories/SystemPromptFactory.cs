@@ -16,7 +16,7 @@ public static class SystemPromptFactory
         string name = agentType switch
         {
             AgentType.NL2SQL => "NL2SQL",
-            AgentType.ChartMaker => "Transactions",
+            //AgentType.ChartMaker => "Chart Maker",
             AgentType.Coordinator => "Coordinator",
             _ => throw new ArgumentOutOfRangeException(nameof(agentType), agentType, null),
         };
@@ -28,7 +28,7 @@ public static class SystemPromptFactory
         string promptFile = agentType switch
         {
             AgentType.NL2SQL => "NL2SQL.prompty",
-            AgentType.ChartMaker => "ChartMaker.prompty",
+            //AgentType.ChartMaker => "ChartMaker.prompty",
             AgentType.Coordinator => "Coordinator.prompty",
             _ => throw new ArgumentOutOfRangeException(nameof(agentType), agentType, null),
         };

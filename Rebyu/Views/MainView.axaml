@@ -22,6 +22,7 @@
             x:Key="UserOrAITextConverter"
             FalseValue="🤖 AI Agent"
             TrueValue="👤 User" />
+        <converters:ChatAuthorToObjectConverter x:Key="ChatAuthorConverter" />
     </UserControl.Resources>
 
     <UserControl.Styles>
@@ -47,9 +48,32 @@
         <Style Selector="ListBox.filters ListBoxItem:selected Border">
             <Setter Property="BorderBrush" Value="Transparent" />
         </Style>
+
+        <Style Selector="TabControl WrapPanel">
+            <Setter Property="MaxHeight" Value="20" />
+            <Setter Property="Margin" Value="0,5,0,20" />
+        </Style>
+
+        <Style Selector="TabItem">
+            <Setter Property="Foreground" Value="Black" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0 0 0 0" />
+            <Setter Property="Padding" Value="10 0" />
+            <Setter Property="BorderThickness" Value="0 0 0 0" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="TabItem > TextBlock">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
     </UserControl.Styles>
 
-    <Grid>
+    <Grid Margin="4">
         <!--  App View  -->
         <Grid IsVisible="{Binding IsConnected}">
             <Grid.RowDefinitions>
@@ -60,40 +84,66 @@
             <!--  Top Section with Header and Menus  -->
             <Grid
                 Grid.Row="0"
-                Margin="4"
+                Margin="8,4"
                 ColumnDefinitions="*,Auto,*">
+                <!--  Database Path Display  -->
                 <StackPanel
                     Grid.Column="0"
                     VerticalAlignment="Center"
                     Orientation="Horizontal"
-                    Spacing="4">
-                    <PathIcon VerticalAlignment="Center" Data="{StaticResource folder_regular}" />
-                    <TextBlock VerticalAlignment="Center" FontWeight="Bold">
+                    Spacing="8">
+                    <PathIcon
+                        Width="16"
+                        Height="16"
+                        VerticalAlignment="Center"
+                        Data="{StaticResource folder_regular}"
+                        Foreground="#4CAF50" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="14"
+                        FontWeight="Bold">
                         <Run Text="{Binding SelectedDatabase.Directory}" />
                         <Run Text=" > " />
                         <Run Text="{Binding SelectedDatabase.Name}" />
                     </TextBlock>
                 </StackPanel>
 
+                <!--  Database Table Count  -->
                 <TextBlock
                     Grid.Column="1"
+                    HorizontalAlignment="Center"
                     VerticalAlignment="Center"
+                    FontSize="14"
+                    FontWeight="SemiBold"
                     Text="{Binding SelectedDatabase.TableCount, StringFormat=Database Tables: {0}}" />
 
+                <!--  Action Buttons  -->
                 <StackPanel
                     Grid.Column="2"
                     HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
                     Orientation="Horizontal"
-                    Spacing="4">
-                    <Button Background="#46C263" Content="Save Session" />
+                    Spacing="8">
                     <Button
+                        Padding="8,4"
+                        Background="#46C263"
+                        BorderThickness="1"
+                        Content="Save Session"
+                        ToolTip.Tip="Save the current session" />
+                    <Button
+                        Background="Transparent"
                         BorderThickness="0"
                         Foreground="#E33437"
-                        ToolTip.Tip="Disconnect">
-                        <PathIcon Data="{StaticResource plug_disconnected_regular}" />
+                        ToolTip.Tip="Disconnect from the database">
+                        <PathIcon
+                            Width="16"
+                            Height="16"
+                            Data="{StaticResource plug_disconnected_regular}"
+                            Foreground="#E33437" />
                     </Button>
                 </StackPanel>
             </Grid>
+
 
 
             <Grid Grid.Row="1">
@@ -128,27 +178,40 @@
                                 </Grid.RowDefinitions>
                                 <Grid
                                     Grid.Row="0"
+                                    Margin="4,2"
                                     HorizontalAlignment="Stretch"
-                                    ColumnDefinitions="Auto,Auto,*">
+                                    ColumnDefinitions="Auto,*">
                                     <Button
                                         Grid.Column="0"
+                                        Margin="4,0,8,0"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        HorizontalContentAlignment="Center">
-                                        <PathIcon Data="{StaticResource arrow_counterclockwise_regular}" />
-                                    </Button>
-                                    <Button
-                                        Grid.Column="1"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        HorizontalContentAlignment="Center">
-                                        <PathIcon Data="{StaticResource export_regular}" />
+                                        HorizontalContentAlignment="Center"
+                                        Background="#4CAF50"
+                                        BorderBrush="#388E3C"
+                                        BorderThickness="1"
+                                        Foreground="#FFFFFF"
+                                        ToolTip.Tip="Refresh Connection">
+                                        <PathIcon Data="{StaticResource arrow_counterclockwise_regular}" Foreground="#FFFFFF" />
                                     </Button>
                                     <AutoCompleteBox
-                                        Grid.Column="2"
+                                        Grid.Column="1"
+                                        Margin="0,0,4,0"
                                         HorizontalAlignment="Stretch"
                                         VerticalAlignment="Center"
-                                        Watermark="Seach tables" />
+                                        Background="#2C2C2C"
+                                        BorderBrush="#3d444d"
+                                        BorderThickness="1"
+                                        FontSize="14"
+                                        Foreground="#FFFFFF"
+                                        Watermark="Search tables">
+                                        <AutoCompleteBox.Styles>
+                                            <Style Selector="TextBox">
+                                                <Setter Property="Watermark" Value="Search tables" />
+                                                <Setter Property="Foreground" Value="#9E9E9E" />
+                                            </Style>
+                                        </AutoCompleteBox.Styles>
+                                    </AutoCompleteBox>
                                 </Grid>
                                 <ScrollViewer Grid.Row="1">
                                     <TreeView ItemsSource="{Binding TreeItems}">
@@ -160,28 +223,54 @@
                                         <TreeView.DataTemplates>
                                             <!--  Root node: Database as "Tables"  -->
                                             <TreeDataTemplate DataType="models:Database" ItemsSource="{Binding Tables}">
-                                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                                    <PathIcon Data="{StaticResource table_regular}" FontSize="12" />
-                                                    <TextBlock FontWeight="Bold" Text="{Binding Header}" />
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <PathIcon
+                                                        Data="{StaticResource table_regular}"
+                                                        FontSize="14"
+                                                        Foreground="#4CAF50" />
+                                                    <TextBlock
+                                                        FontSize="14"
+                                                        FontWeight="Bold"
+                                                        Foreground="#FFFFFF"
+                                                        Text="{Binding Header}" />
                                                 </StackPanel>
                                             </TreeDataTemplate>
 
                                             <!--  Table node  -->
                                             <TreeDataTemplate DataType="models:Table" ItemsSource="{Binding Columns}">
-                                                <TextBlock Text="{Binding Name}" />
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <PathIcon
+                                                        Data="{StaticResource table_regular}"
+                                                        FontSize="12"
+                                                        Foreground="#2196F3" />
+                                                    <TextBlock
+                                                        FontSize="13"
+                                                        Foreground="#E3F2FD"
+                                                        Text="{Binding Name}" />
+                                                </StackPanel>
                                             </TreeDataTemplate>
 
                                             <!--  Column node  -->
                                             <DataTemplate DataType="models:Column">
-                                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                                    <TextBlock Text="{Binding Name}" />
-                                                    <TextBlock Foreground="Green" Text="{Binding DataType}" />
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <TextBlock
-                                                        Foreground="Orange"
+                                                        FontSize="12"
+                                                        Foreground="#FFFFFF"
+                                                        Text="{Binding Name}" />
+                                                    <TextBlock
+                                                        FontSize="12"
+                                                        Foreground="#8BC34A"
+                                                        Text="{Binding DataType}" />
+                                                    <TextBlock
+                                                        FontSize="12"
+                                                        FontWeight="Bold"
+                                                        Foreground="#FF9800"
                                                         IsVisible="{Binding IsPrimaryKey}"
                                                         Text="PK" />
                                                     <TextBlock
-                                                        Foreground="Orange"
+                                                        FontSize="12"
+                                                        FontWeight="Bold"
+                                                        Foreground="#FF5722"
                                                         IsVisible="{Binding IsForeignKey}"
                                                         Text="FK" />
                                                 </StackPanel>
@@ -195,63 +284,37 @@
                         <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
 
                         <!--  EDITOR  -->
-                        <Grid Grid.Column="2" RowDefinitions="auto,*">
-                            <!--  TABLE INFO  -->
-                            <Expander
-                                Grid.Row="0"
-                                Margin="0,0,0,4"
-                                VerticalAlignment="Top"
-                                BorderBrush="#3d444d"
-                                BorderThickness="1"
-                                IsExpanded="True">
-                                <Expander.Header>
-                                    Table Info
-                                </Expander.Header>
-                                <Grid ColumnDefinitions="150,*" RowDefinitions="*,*">
-                                    <TextBlock
-                                        Grid.Row="0"
+                        <Border
+                            x:Name="EditorBorder"
+                            Grid.Row="1"
+                            Grid.Column="2"
+                            BorderBrush="#3d444d"
+                            BorderThickness="2"
+                            ClipToBounds="True">
+                            <Grid RowDefinitions="auto,*,auto">
+                                <TextBlock
+                                    Margin="4"
+                                    FontWeight="SemiBold"
+                                    Text="Query Editor" />
+                                <AvaloniaEdit:TextEditor
+                                    x:Name="sqlEditor"
+                                    Grid.Row="1"
+                                    Background="#2c2c2c"
+                                    Document="{Binding CurrentSessionQuery.EditorContent, Mode=TwoWay}"
+                                    FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                                    FontSize="14"
+                                    HorizontalScrollBarVisibility="Auto"
+                                    ShowLineNumbers="True"
+                                    VerticalScrollBarVisibility="Visible" />
+                                <Grid Grid.Row="2" ColumnDefinitions="*,auto">
+                                    <StackPanel
                                         Grid.Column="0"
-                                        VerticalAlignment="Center">
-                                        Search
-                                    </TextBlock>
-                                    <TextBox
-                                        Grid.Row="0"
-                                        Grid.Column="1"
-                                        Width="200"
-                                        Watermark="Search text" />
-                                    <TextBlock
-                                        Grid.Row="1"
-                                        Grid.Column="0"
-                                        VerticalAlignment="Center">
-                                        Case sensitive?
-                                    </TextBlock>
-                                    <CheckBox Grid.Row="1" Grid.Column="1" />
-                                </Grid>
-                            </Expander>
-
-                            <!--  AVALONIA EDIT  -->
-                            <Border
-                                x:Name="EditorBorder"
-                                Grid.Row="1"
-                                BorderBrush="#3d444d"
-                                BorderThickness="2">
-                                <Grid RowDefinitions="*,auto">
-                                    <AvaloniaEdit:TextEditor
-                                        x:Name="sqlEditor"
-                                        Grid.Row="0"
-                                        Document="{Binding CurrentSessionQuery.EditorContent, Mode=TwoWay}"
-                                        FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
-                                        FontSize="14"
-                                        HorizontalScrollBarVisibility="Auto"
-                                        ShowLineNumbers="True"
-                                        VerticalScrollBarVisibility="Visible" />
-                                    <Grid Grid.Row="1" ColumnDefinitions="*,auto">
-                                        <StackPanel
-                                            Grid.Column="0"
-                                            Margin="5"
-                                            HorizontalAlignment="Left"
-                                            VerticalAlignment="Center"
-                                            Orientation="Horizontal">
+                                        Margin="5"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal"
+                                        Spacing="8">
+                                        <StackPanel Orientation="Horizontal" Spacing="2">
                                             <TextBlock VerticalAlignment="Center" Text="Line:" />
                                             <TextBlock
                                                 x:Name="LineNumberText"
@@ -263,45 +326,44 @@
                                                 Margin="5,0"
                                                 VerticalAlignment="Center" />
                                         </StackPanel>
-
-                                        <StackPanel
-                                            Grid.Column="1"
-                                            Orientation="Horizontal"
-                                            Spacing="8">
-                                            <StackPanel Orientation="Horizontal" Spacing="2">
-                                                <Button>
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <PathIcon Data="{StaticResource arrow_left_regular}" />
-                                                    </StackPanel>
-                                                </Button>
-                                                <Button>
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <PathIcon Data="{StaticResource arrow_right_regular}" />
-                                                    </StackPanel>
-                                                </Button>
-                                            </StackPanel>
-                                            <StackPanel Orientation="Horizontal" Spacing="2">
-                                                <Button>
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <PathIcon Data="{StaticResource save_as_regular}" />
-                                                    </StackPanel>
-                                                </Button>
-                                                <Button
-                                                    x:Name="ExecuteSqlButton"
-                                                    Background="{DynamicResource SystemAccentColor}"
-                                                    Command="{Binding ExecuteCommandCommand}">
-                                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                                        <PathIcon Data="{StaticResource play_regular}" />
-                                                        <TextBlock Text="Run" />
-                                                    </StackPanel>
-                                                </Button>
-                                            </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="2">
+                                            <Button Command="{Binding NavigateBackwardCommand}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <PathIcon Data="{StaticResource arrow_left_regular}" />
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Command="{Binding NavigateForwardCommand}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <PathIcon Data="{StaticResource arrow_right_regular}" />
+                                                </StackPanel>
+                                            </Button>
                                         </StackPanel>
-                                    </Grid>
-                                </Grid>
-                            </Border>
-                        </Grid>
+                                    </StackPanel>
 
+                                    <StackPanel
+                                        Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        Spacing="8">
+                                        <StackPanel Orientation="Horizontal" Spacing="2">
+                                            <Button>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <PathIcon Data="{StaticResource save_as_regular}" />
+                                                </StackPanel>
+                                            </Button>
+                                            <Button
+                                                x:Name="ExecuteSqlButton"
+                                                Background="{DynamicResource SystemAccentColor}"
+                                                Command="{Binding ExecuteCommandCommand}">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <PathIcon Data="{StaticResource play_regular}" />
+                                                    <TextBlock Text="Run" />
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </Grid>
+                        </Border>
                     </Grid>
                     <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
 
@@ -315,22 +377,18 @@
 
                                 <!--  RESULTS  -->
                                 <TabItem Header="Results">
-                                    <ScrollViewer>
-                                        <StackPanel Orientation="Vertical">
-                                            <TextBlock Text="SQL Action Response Message" />
-                                            <TreeDataGrid ShowColumnHeaders="True" Source="{Binding DataGridSource}" />
+                                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                        <StackPanel Orientation="Vertical" Spacing="8">
+                                            <TextBlock Foreground="#9b8aff" Text="Run a Query to populate this view" />
+                                            <TreeDataGrid
+                                                HorizontalAlignment="Stretch"
+                                                VerticalAlignment="Stretch"
+                                                BorderBrush="#3D444D"
+                                                BorderThickness="1"
+                                                ShowColumnHeaders="True"
+                                                Source="{Binding DataGridSource}" />
                                         </StackPanel>
                                     </ScrollViewer>
-                                </TabItem>
-
-                                <!--  CHARTS  -->
-                                <TabItem Header="Chart">
-                                    <TextBlock Margin="5">This is tab 2 content</TextBlock>
-                                </TabItem>
-
-                                <!--  LOG  -->
-                                <TabItem Header="Logs">
-                                    <TextBlock Margin="5">This is tab 3 content</TextBlock>
                                 </TabItem>
                             </TabControl>
                         </Grid>
@@ -339,58 +397,121 @@
 
                 <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
 
-                <!--#region 💬 AI CHAT INTERFACE-->
+                <!--  AI CHAT INTERFACE  -->
                 <Border
                     Grid.Column="2"
                     Margin="0,0,2,2"
-                    BorderThickness="1">
-                    <Grid Margin="4" RowDefinitions="Auto,*,Auto">
+                    Background="#2C2C2C"
+                    BorderBrush="#3D444D"
+                    BorderThickness="1"
+                    CornerRadius="5">
+                    <Grid Margin="8" RowDefinitions="Auto,*,Auto,Auto">
+                        <!--  Reset Chat Button  -->
+                        <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
+                            <Button
+                                Grid.Column="1"
+                                Padding="8,4"
+                                HorizontalAlignment="Right"
+                                Background="#FF5722"
+                                BorderBrush="#E64A19"
+                                BorderThickness="1"
+                                Command="{Binding ResetChatCommand}"
+                                Content="Reset Chat"
+                                Foreground="#FFFFFF" />
+                        </Grid>
+
+                        <!--  Chat ListBox  -->
                         <ListBox
                             Grid.Row="1"
                             AutoScrollToSelectedItem="True"
+                            Background="#1E1E1E"
+                            BorderBrush="#3D444D"
+                            BorderThickness="1"
                             ItemsSource="{Binding Chat}"
                             SelectedItem="{Binding LastMessage, Mode=TwoWay}"
-                            SelectionMode="AlwaysSelected">
+                            SelectionMode="Single">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Vertical" />
+                                    <VirtualizingStackPanel Orientation="Vertical" />
                                 </ItemsPanelTemplate>
                             </ListBox.ItemsPanel>
+
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="models:Message">
-                                    <StackPanel Background="Transparent">
-                                        <TextBlock
-                                            FontWeight="SemiBold"
-                                            Foreground="{StaticResource AccentAAFillColorDefaultBrush}"
-                                            Text="{Binding IsUser, Mode=OneWay, Converter={StaticResource UserOrAITextConverter}}" />
-                                        <md:MarkdownScrollViewer Markdown="{Binding Text}" />
-                                    </StackPanel>
+                                    <Border
+                                        Margin="4"
+                                        Padding="8"
+                                        Background="#2C2C2C"
+                                        BorderBrush="{Binding ., Converter={StaticResource ChatAuthorConverter}, ConverterParameter=BorderBrush}"
+                                        BorderThickness="2"
+                                        CornerRadius="5">
+                                        <StackPanel Background="Transparent" Spacing="4">
+                                            <StackPanel
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal"
+                                                Spacing="8">
+                                                <TextBlock
+                                                    FontSize="14"
+                                                    FontWeight="Bold"
+                                                    Foreground="{Binding ., Converter={StaticResource ChatAuthorConverter}, ConverterParameter=IconColor}"
+                                                    Text="{Binding ., Converter={StaticResource ChatAuthorConverter}, ConverterParameter=Icon}" />
+                                                <TextBlock
+                                                    x:Name="SenderName"
+                                                    FontSize="14"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{StaticResource AccentAAFillColorDefaultBrush}"
+                                                    Text="{Binding ., Converter={StaticResource ChatAuthorConverter}, ConverterParameter=SenderName}" />
+                                            </StackPanel>
+                                            <md:MarkdownScrollViewer Margin="4,0,0,0" Markdown="{Binding Text}" />
+                                        </StackPanel>
+                                    </Border>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-                        <Grid Grid.Row="2" RowDefinitions="Auto,*">
-                            <CheckBox Grid.Row="0" Content="Include Editor Content" />
+
+                        <!--  Separator  -->
+                        <Separator
+                            Grid.Row="2"
+                            Height="1"
+                            Background="#3D444D" />
+
+                        <!--  User Input Section  -->
+                        <Grid
+                            Grid.Row="3"
+                            Margin="0,8,0,0"
+                            RowDefinitions="Auto,*">
+                            <CheckBox
+                                Grid.Row="0"
+                                Margin="0,0,0,8"
+                                Content="Include Editor Content"
+                                Foreground="#FFFFFF" />
                             <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
                                 <TextBox
                                     Grid.Column="0"
+                                    Background="#1E1E1E"
+                                    BorderBrush="#3D444D"
+                                    BorderThickness="1"
+                                    FontSize="14"
+                                    Foreground="#FFFFFF"
                                     Text="{Binding UserPrompt, Mode=TwoWay}"
-                                    Watermark="Chat with Rebyu AI Agent...">
+                                    Watermark="Chat with Rebyu AI Agents...">
                                     <TextBox.KeyBindings>
                                         <KeyBinding Command="{Binding ProcessUserPromptCommand}" Gesture="Enter" />
                                     </TextBox.KeyBindings>
                                 </TextBox>
                                 <Button
                                     Grid.Column="1"
-                                    Margin="4,0,0,0"
+                                    Margin="8,0,0,0"
                                     Background="{DynamicResource SystemAccentBrush}"
-                                    Command="{Binding ProcessUserPromptCommand}">
-                                    <PathIcon Data="{StaticResource send_regular}" />
+                                    Command="{Binding ProcessUserPromptCommand}"
+                                    Foreground="#FFFFFF">
+                                    <PathIcon Data="{StaticResource send_regular}" Foreground="#FFFFFF" />
                                 </Button>
                             </Grid>
                         </Grid>
                     </Grid>
                 </Border>
-                <!--#endregion-->
+
             </Grid>
         </Grid>
 
@@ -408,12 +529,13 @@
                 FontWeight="SemiBold"
                 Text="Welcome to Rebyu!" />
 
-            <Label
+            <TextBlock
                 Margin="0,12,0,0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Content="Yet a simple SQLite Database viewer"
-                FontSize="20" />
+                FontSize="20"
+                Text="Yet a simple SQLite Database viewer with AI Agents"
+                TextWrapping="Wrap" />
 
             <Button
                 Margin="0,12,0,0"
@@ -422,12 +544,16 @@
                 Command="{Binding SelectDbFileCommand}"
                 Content="Select Database" />
 
+
+            <!--
             <Separator Margin="16" />
+
             <Button
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Background="{DynamicResource SystemFillColorSuccessBrush}"
-                Content="Saved sessions" />
+                Content="Saved sessions" />-->
+
         </StackPanel>
     </Grid>
 </UserControl>

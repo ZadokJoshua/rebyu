@@ -7,10 +7,10 @@ using System.ComponentModel;
 
 namespace Rebyu.Plugins;
 
-public sealed class NL2SQLPlugin
+public sealed class NL2SQLPlugin : BasePlugin
 {
     [KernelFunction]
-    [Description("Updates the preview editor with the given string.")]
+    [Description("Updates the preview editor with the given string")]
     public void UpdatePreviewEditor([Description("The exact sql statement to be added")] string sqlStatement)
     {
         var mainViewModel = App.ServiceProvider.GetRequiredService<MainViewModel>();

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -37,7 +38,7 @@ public class SemanticKernelService : ISemanticKernelService
         builder.Services.AddSingleton<ILoggerFactory>(loggerFactory);
 
         builder.AddOpenAIChatCompletion(
-            "gpt-4.1",
+            "gpt-4o",
             openAiApiKey);
 
         _semanticKernel = builder.Build();

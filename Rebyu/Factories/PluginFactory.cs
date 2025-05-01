@@ -16,10 +16,10 @@ public static class PluginFactory
                 var nL2SQLPlugin = new NL2SQLPlugin();
                 agentKernel.Plugins.AddFromObject(nL2SQLPlugin);
                 break;
-            case AgentType.ChartMaker:
-                var chartMakerPlugin = new ChartMakerPlugin();
-                agentKernel.Plugins.AddFromObject(chartMakerPlugin);
-                break;
+            //case AgentType.ChartMaker:
+            //    var chartMakerPlugin = new ChartMakerPlugin();
+            //    agentKernel.Plugins.AddFromObject(chartMakerPlugin);
+            //    break;
             case AgentType.Coordinator:
                 var CoordinatorPlugin = new CoordinatorPlugin();
                 agentKernel.Plugins.AddFromObject(CoordinatorPlugin);

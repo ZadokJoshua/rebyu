@@ -5,9 +5,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Rebyu.Interfaces;
 using Rebyu.Models;
 using Rebyu.Services;
@@ -15,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Linq;
 using System.Threading.Tasks;
 using static Rebyu.Helper.StorageProviderHelper;
 
@@ -32,9 +29,6 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private Database? _selectedDatabase;
 
-    //[ObservableProperty]
-    //private TextDocument _editorContent = new("");
-
     [ObservableProperty]
     private FlatTreeDataGridSource<Dictionary<string, object>> _dataGridSource;
 
@@ -45,13 +39,22 @@ public partial class MainViewModel : ViewModelBase
     private Message? _lastMessage;
 
     [ObservableProperty]
+    private bool _chatIsBusy;
+
+    [ObservableProperty]
     private SessionSqlQuery _currentSessionQuery;
 
     public ObservableCollection<Database> TreeItems { get; set; } = [];
     public ObservableCollection<Message> Chat { get; set; } = [];
     public ObservableCollection<SessionSqlQuery> SqlQueries { get; set; } = [];
 
-    private ChatHistory _chatHistory { get; set; } = [];
+    public ChatHistory ChatHistory { get; set; } = [];
+
+    [ObservableProperty]
+    private int _currentQueryIndex;
+
+    [ObservableProperty]
+    private int _totalQueryCount;
 
     private readonly SqliteDataService _sqliteDataService;
     private readonly ISemanticKernelService _skService;
@@ -63,23 +66,28 @@ public partial class MainViewModel : ViewModelBase
         _sqliteDataService = App.ServiceProvider.GetRequiredService<SqliteDataService>();
         _skService = App.ServiceProvider.GetRequiredService<ISemanticKernelService>();
 
-        SqlQueries.CollectionChanged += OnSqlQueriesCollectionChanged;
-    }
 
-    private Task InitializeConversation()
-    {
-        _skService.GetResponse()
+        SqlQueries.CollectionChanged += OnSqlQueriesCollectionChanged;
     }
 
     private void OnSqlQueriesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
+        TotalQueryCount = SqlQueries.Count;
+
+        if (SqlQueries.Count == 0)
+        {
+            CurrentSessionQuery = new SessionSqlQuery("-- Enter your SQL query here\nSELECT * FROM ", AssignSqlQueryId());
+            CurrentQueryIndex = 0;
+            return;
+        }
+
         switch (e.Action)
         {
             case NotifyCollectionChangedAction.Add:
                 if (e.NewItems != null && e.NewItems.Count > 0)
                 {
-                    var newItem = e.NewItems[0] as SessionSqlQuery;
-                    if (newItem != null)
+                    // Set the last added item as the current session query
+                    if (e.NewItems[^1] is SessionSqlQuery newItem)
                     {
                         CurrentSessionQuery = newItem;
                     }
@@ -89,14 +97,31 @@ public partial class MainViewModel : ViewModelBase
             case NotifyCollectionChangedAction.Remove:
                 if (e.OldItems != null && e.OldItems.Count > 0)
                 {
-                    var removedItem = e.OldItems[0] as SessionSqlQuery;
-                    if (removedItem != null)
+                    if (e.OldItems[0] is SessionSqlQuery removedItem)
                     {
                         HandleRemovedQuery(removedItem);
                     }
                 }
                 break;
+
+            case NotifyCollectionChangedAction.Reset:
+                CurrentSessionQuery = new SessionSqlQuery("-- Enter your SQL query here\nSELECT * FROM ", AssignSqlQueryId());
+                CurrentQueryIndex = 0;
+                break;
+
+            case NotifyCollectionChangedAction.Replace:
+                // Handle replacing items
+                if (e.NewItems != null && e.NewItems.Count > 0)
+                {
+                    if (e.NewItems[0] is SessionSqlQuery replacedItem)
+                    {
+                        CurrentSessionQuery = replacedItem;
+                    }
+                }
+                break;
         }
+
+        CurrentQueryIndex = SqlQueries.IndexOf(CurrentSessionQuery) + 1;
     }
 
     private void HandleRemovedQuery(SessionSqlQuery removedItem)
@@ -153,7 +178,6 @@ public partial class MainViewModel : ViewModelBase
         return lastSqlQuery.Id + 1;
     }
 
-    
 
     [RelayCommand]
     private async Task SelectDbFile()
@@ -172,7 +196,6 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private async Task ExecuteCommand()
     {
-        // TODO: Check if the sql statement contains a non-idempotent operation
         var queryResult = _sqliteDataService.ExecuteSql(SelectedDatabase.ConnectionString, CurrentSessionQuery.EditorContent.Text);
 
         var newSource = new FlatTreeDataGridSource<Dictionary<string, object>>(queryResult.Rows);
@@ -195,33 +218,21 @@ public partial class MainViewModel : ViewModelBase
     {
         if (string.IsNullOrEmpty(UserPrompt)) return;
 
-        UserPrompt = string.Empty;
-
         var userMessage = new Message("User", "User", text: UserPrompt)
         { 
             IsUser = true,  
         };
 
-        try
-        {
-            var response = await _skService.GetResponse(userMessage, Chat.ToList());
-        }
-        catch (Exception)
-        {
-
-            throw;
-        }
-
         AddMessageToChat(userMessage);
 
-        //var aiResponse = await _kernel.InvokePromptAsync(UserPrompt, kernelArguments);
+        UserPrompt = string.Empty;
 
-        //var aiMessage = new Message
-        //{
-        //    Text = aiResponse.ToString(),
-        //    IsUser = false
-        //};
-        //AddMessageToChat(aiMessage);
+        var response = await _skService.GetResponse(userMessage, [.. Chat]);
+
+        foreach (var message in response.Item1)
+        {
+            AddMessageToChat(message);
+        }
     }
 
     [RelayCommand]
@@ -236,12 +247,53 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void FetchRecommendatedPromptsInit()
+    private void ResetChat() => Chat.Clear();
+
+    partial void OnCurrentSessionQueryChanged(SessionSqlQuery value)
     {
-        throw new NotImplementedException();
+        CurrentQueryIndex = SqlQueries.IndexOf(value) + 1;
+        TotalQueryCount = SqlQueries.Count;
+
+        NavigateBackwardCommand.NotifyCanExecuteChanged();
+        NavigateForwardCommand.NotifyCanExecuteChanged();
     }
 
-    private void LoadChat()
+    [RelayCommand(CanExecute = nameof(CanNavigateBackward))]
+    private void NavigateBackward()
+    {
+        if (SqlQueries.Count == 0) return;
+
+        var currentIndex = SqlQueries.IndexOf(CurrentSessionQuery);
+        if (currentIndex > 0)
+        {
+            CurrentSessionQuery = SqlQueries[currentIndex - 1];
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanNavigateForward))]
+    private void NavigateForward()
+    {
+        if (SqlQueries.Count == 0) return;
+
+        var currentIndex = SqlQueries.IndexOf(CurrentSessionQuery);
+        if (currentIndex < SqlQueries.Count - 1)
+        {
+            CurrentSessionQuery = SqlQueries[currentIndex + 1];
+        }
+    }
+
+    private bool CanNavigateBackward()
+    {
+        return CurrentSessionQuery != null && SqlQueries.IndexOf(CurrentSessionQuery) > 0;
+    }
+
+    private bool CanNavigateForward()
+    {
+        return CurrentSessionQuery != null && SqlQueries.IndexOf(CurrentSessionQuery) < SqlQueries.Count - 1;
+    }
+
+    [RelayCommand]
+    private void FetchRecommendatedPromptsInit()
     {
         throw new NotImplementedException();
     }

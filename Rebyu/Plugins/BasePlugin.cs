@@ -42,6 +42,6 @@ public class BasePlugin
     }
 
     [KernelFunction]
-    [Description("Retrieves the current time in UTC.")]
-    public string GetCurrentUtcTime() => DateTime.UtcNow.ToString("R");
+    [Description("Retrieves the current time")]
+    public string GetCurrentTime() => DateTime.Now.ToString("R");
 }

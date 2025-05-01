@@ -3,6 +3,6 @@
 public enum AgentType
 {
     NL2SQL,
-    ChartMaker,
+    //ChartMaker,
     Coordinator
 }

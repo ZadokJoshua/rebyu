@@ -2,12 +2,10 @@ using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using Rebyu.Extensions;
-using Rebyu.ViewModels;
 using Rebyu.Views;
 
 namespace Rebyu

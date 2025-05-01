@@ -16,22 +16,22 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<MainViewModel>();
         collection.AddSingleton<SqliteDataService>();
 
-        var openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY", EnvironmentVariableTarget.User);
+        var openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
 
         if (string.IsNullOrEmpty(openAiApiKey))
             throw new InvalidOperationException("OPENAI_API_KEY environment variable is not set.");
 
-        var serilogLogger = new LoggerConfiguration()
+        Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .WriteTo.InMemory()
             .CreateLogger();
 
-        var loggerFactory = LoggerFactory.Create(builder =>
+        collection.AddLogging(logging =>
         {
-            builder.AddSerilog(serilogLogger);
+            logging.ClearProviders();
+            logging.AddSerilog(Log.Logger);
         });
 
-        collection.AddSingleton<ILoggerFactory>(loggerFactory);
 
         collection.AddSingleton<ISemanticKernelService>(provider =>
         {

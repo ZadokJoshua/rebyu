@@ -66,8 +66,6 @@ internal class ChatFactory
         AgentGroupChat agentGroupChat = new();
         var chatModel = kernel.GetRequiredService<IChatCompletionService>();
 
-        // kernel.AutoFunctionInvocationFilters.Add(new AutoFunctionInvocationLoggingFilter(loggerFactory.CreateLogger<AutoFunctionInvocationLoggingFilter>()));
-
         foreach (AgentType agentType in Enum.GetValues<AgentType>())
         {
             agentGroupChat.AddAgent(BuildAgent(kernel, agentType));
@@ -90,19 +88,14 @@ internal class ChatFactory
                 new KernelFunctionSelectionStrategy(GetStrategyFunction(ChatResponseFormatBuilder.ChatResponseStrategy.Continuation), kernel)
                 {
                     Arguments = new KernelArguments(GetExecutionSettings(ChatResponseFormatBuilder.ChatResponseStrategy.Continuation)),
-                    // Save tokens by only including the final few responses
                     HistoryReducer = historyReducer,
-                    // The prompt variable name for the history argument.
                     HistoryVariableName = "lastmessage",
-                    // Returns the entire result value as a string.
                     ResultParser = (result) =>
                     {
                         var resultString = result.GetValue<string>();
                         if (!string.IsNullOrEmpty(resultString))
                         {
                             var ContinuationInfo = JsonSerializer.Deserialize<ContinuationInfo>(resultString);
-                            //logCallback("SELECTION - Agent", ContinuationInfo.AgentName);
-                            //logCallback("SELECTION - Reason", ContinuationInfo.Reason);
                             return ContinuationInfo.AgentName;
                         }
                         else
@@ -115,21 +108,15 @@ internal class ChatFactory
                 new KernelFunctionTerminationStrategy(GetStrategyFunction(ChatResponseFormatBuilder.ChatResponseStrategy.Termination), kernel)
                 {
                     Arguments = new KernelArguments(GetExecutionSettings(ChatResponseFormatBuilder.ChatResponseStrategy.Termination)),
-                    // Save tokens by only including the final response
                     HistoryReducer = historyReducer,
-                    // The prompt variable name for the history argument.
                     HistoryVariableName = "lastmessage",
-                    // Limit total number of turns
                     MaximumIterations = 8,
-                    // user result parser to determine if the response is "yes"
                     ResultParser = (result) =>
                     {
                         var resultString = result.GetValue<string>();
                         if (!string.IsNullOrEmpty(resultString))
                         {
                             var terminationInfo = JsonSerializer.Deserialize<TerminationInfo>(resultString);
-                            //logCallback("TERMINATION - Continue", terminationInfo.ShouldContinue.ToString());
-                            //logCallback("TERMINATION - Reason", terminationInfo.Reason);
                             return !terminationInfo.ShouldContinue;
                         }
                         else

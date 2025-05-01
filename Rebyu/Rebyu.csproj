@@ -61,9 +61,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Prompts\ChartMaker.prompty">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Prompts\CommonAgentRules.prompty">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

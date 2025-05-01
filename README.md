@@ -21,8 +21,8 @@ Perfect For:
 3. Avalonia UI
 
 ## How to run
-1. Clone this repository
-2. Set your Openai API key as an environment variable
+1. Clone this repository.
+2. Set your Openai API key as an environment variable.
   ```bash
    setx OPENAI_API_KEY "<YOUR-API-KEY>"
    ```
